@@ -6,6 +6,9 @@ import numpy as np
 from io import BytesIO
 from PIL import Image
 from keras.models import load_model
+from fastapi import Request
+from fastapi.templating import Jinja2Templates
+templates = Jinja2Templates(directory="htmlDirectory")
 
 
 app = FastAPI()
@@ -122,8 +125,8 @@ a:active {
 		<button class="btn"><a href="/upload_cabbage"><h1>Cabbage</h1></a></button>
 	</div>
 	<h3>This is an AI based website, which can predict various diseases related to commonly grown crops.<br>
-	 User can upload image of the crops which user have selected and upload. Our AI models will predict the <br>
-	 likelihood of a disease with it's confidence.</h3>
+	 User can select and upload image of the crop's leaf. Our AI models will predict the <br>
+	 likelihood of a disease the crop might have with a certain surity.</h3>
 	<script>
 		// code for button hover effect
 		const buttons = document.querySelectorAll('.btn');
@@ -145,185 +148,322 @@ a:active {
 
 @app.get("/upload_cassava")
 async def upload_page():
-    content="""<!DOCTYPE html>
+    content='''<!DOCTYPE html>
         <html>
         <head>
             <title>Image Upload Page</title>
             <style>
+              body {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			height: 100vh;
+			margin: 0;
+			padding: 0;
+			background: url(https://w0.peakpx.com/wallpaper/837/398/HD-wallpaper-yellow-green-field-during-sunset-field-sunset-grass-nature-graphy.jpg) no-repeat;
+      background-position: center;
+      background-size: cover;
+      min-height: 100vh;
+      width: 100%;
+		}
     .center-box {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
 }
-
+h2{
+	text-align: center;
+  font-style: oblique;
+}
 .upload-box {
-  border: 1px solid #ccc;
+	width: 448px;
+	height: 200px;
+  border: 2px solid #000000;
   padding: 10px;
   margin-bottom: 10px;
 }
 
 .upload-btn {
   display: block;
-  width: 100px;
-  height: 100px;
+  width: 100px; /* Increase button width */
+  height: 58px; /* Increase button height */
   font-size: 16px;
   padding: 10px;
-  background-color: #4CAF50;
-  color: #fff;
+  background-color: transparent;
+  color: transparent;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   margin: auto;
+  display: flex; /* Add display:flex for center aligning */
+  justify-content: center; /* Center horizontally */
+  align-items: justify; /* Center vertically */
 }
+.upload-btn1 {
+  display: block;
+  width: 150px; /* Increase button width */
+  height: 50px; /* Increase button height */
+  font-size: 16px;
+  padding: 10px;
+  background-color: transparent;
+  color: #9bde9d;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: auto;
+  display: flex; /* Add display:flex for center aligning */
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+}
+
     </style>
         </head>
         <body>
              <div class="center-box">
         <form action="/predict_cassava" method="POST" enctype="multipart/form-data">
           <div class="upload-box">
-            <label for="image-upload">Upload an image:</label>
-            <input type="file" id="image-upload" name="image">
+            <label for="image-upload"><h2>Upload an image:</h2><br></label>
+            <input class=upload-btn type="file" id="image-upload" name="image">
           </div>
-          <button type="submit"> upload image</button>
+          <div class=upload-btn1>
+          <button type="submit"> <h3>upload image</h3></button>
+          </div>
         </form>
       </div>
         </body>
-        </html>"""
+        </html>'''
     return HTMLResponse(content=content)
 
 @app.post("/predict_cassava")
-async def predict(image: UploadFile = File(...)):
+async def predict(request: Request, image: UploadFile = File(...)):
         array = ["Cassava Bacterial Blight (CBB)",
                            "Cassava Brown Streak Disease (CBSD)",
                            "Cassava Green Mottle (CGM)",
                            "Cassava Mosaic Disease (CMD)",
                            "Healthy"]
-        img = read_img(await image.read())
-        img = img / 255
-        # print(img)
-        img = np.expand_dims(img, axis=0)
-        prediction = model1.predict(img)
-        return {
-            "Prediction": array[np.argmax(prediction[0]).tolist()],
-            "Surity": str(np.max(prediction).tolist()*100) + " %"
-        }
+        try:
+            img = read_img(await image.read())
+            img = img / 255
+            # print(img)
+            img = np.expand_dims(img, axis=0)
+            prediction = model1.predict(img)
+            d = array[np.argmax(prediction[0]).tolist()]
+            conf = str(round(np.max(prediction).tolist() * 100, 2)) + " %"
+            return templates.TemplateResponse("prediction.html",
+                                              {'request': request, 'cropname': "Cassava", "disease": d,
+                                               "confidence": conf})
+        except:
+            return templates.TemplateResponse("prediction.html",
+                                              {'request': request, 'cropname': "Cassava", "disease": "Image not supported. Retry with JPG images!",
+                                               "confidence": "Image not supported. Retry with JPG images!"})
+
 
 
 @app.get("/upload_potato")
 async def upload_page():
-    content="""<!DOCTYPE html>
+    content='''<!DOCTYPE html>
         <html>
         <head>
             <title>Image Upload Page</title>
             <style>
+              body {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			height: 100vh;
+			margin: 0;
+			padding: 0;
+			background: url(https://w0.peakpx.com/wallpaper/837/398/HD-wallpaper-yellow-green-field-during-sunset-field-sunset-grass-nature-graphy.jpg) no-repeat;
+      background-position: center;
+      background-size: cover;
+      min-height: 100vh;
+      width: 100%;
+		}
     .center-box {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
 }
-
+h2{
+	text-align: center;
+  font-style: oblique;
+}
 .upload-box {
-  border: 1px solid #ccc;
+	width: 448px;
+	height: 200px;
+  border: 2px solid #000000;
   padding: 10px;
   margin-bottom: 10px;
 }
 
 .upload-btn {
   display: block;
-  width: 100px;
-  height: 100px;
+  width: 100px; /* Increase button width */
+  height: 58px; /* Increase button height */
   font-size: 16px;
   padding: 10px;
-  background-color: #4CAF50;
-  color: #fff;
+  background-color: transparent;
+  color: transparent;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   margin: auto;
+  display: flex; /* Add display:flex for center aligning */
+  justify-content: center; /* Center horizontally */
+  align-items: justify; /* Center vertically */
 }
+.upload-btn1 {
+  display: block;
+  width: 150px; /* Increase button width */
+  height: 50px; /* Increase button height */
+  font-size: 16px;
+  padding: 10px;
+  background-color: transparent;
+  color: #9bde9d;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: auto;
+  display: flex; /* Add display:flex for center aligning */
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+}
+
     </style>
         </head>
         <body>
              <div class="center-box">
         <form action="/predict_potato" method="POST" enctype="multipart/form-data">
           <div class="upload-box">
-            <label for="image-upload">Upload an image:</label>
-            <input type="file" id="image-upload" name="image">
+            <label for="image-upload"><h2>Upload an image:</h2><br></label>
+            <input class=upload-btn type="file" id="image-upload" name="image">
           </div>
-          <button type="submit"> upload image</button>
+          <div class=upload-btn1>
+          <button type="submit"> <h3>upload image</h3></button>
+          </div>
         </form>
       </div>
         </body>
-        </html>"""
+        </html>'''
     return HTMLResponse(content=content)
 
 @app.post("/predict_potato")
-async def predict(image: UploadFile = File(...)):
+async def predict(request: Request, image: UploadFile = File(...)):
         array = ["Early Blight", "Healthy", 'Late Blight']
-        img = read_img(await image.read())
-        img = img / 255
-        # print(img)
-        img = np.expand_dims(img, axis=0)
-        prediction = model2.predict(img)
-        return {
-            "Prediction": array[np.argmax(prediction[0]).tolist()],
-            "Surity": str(np.max(prediction).tolist()*100) + " %"
-        }
+        try:
+            img = read_img(await image.read())
+            img = img / 255
+            # print(img)
+            img = np.expand_dims(img, axis=0)
+            prediction = model2.predict(img)
+            d = array[np.argmax(prediction[0]).tolist()]
+            conf = str(round(np.max(prediction).tolist() * 100, 2)) + " %"
+            return templates.TemplateResponse("prediction.html",
+                                              {'request': request, 'cropname': "Potato", "disease": d,
+                                               "confidence": conf})
+        except:
+            return templates.TemplateResponse("prediction.html",
+                                                  {'request': request, 'cropname': "Potato",
+                                                   "disease": "Image not supported. Retry with JPG images!",
+                                                   "confidence": "Image not supported. Retry with JPG images!"})
 
 
 @app.get("/upload_tomato")
 async def upload_page():
-    content="""<!DOCTYPE html>
+    content='''<!DOCTYPE html>
         <html>
         <head>
             <title>Image Upload Page</title>
             <style>
+              body {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			height: 100vh;
+			margin: 0;
+			padding: 0;
+			background: url(https://w0.peakpx.com/wallpaper/837/398/HD-wallpaper-yellow-green-field-during-sunset-field-sunset-grass-nature-graphy.jpg) no-repeat;
+      background-position: center;
+      background-size: cover;
+      min-height: 100vh;
+      width: 100%;
+		}
     .center-box {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
 }
-
+h2{
+	text-align: center;
+  font-style: oblique;
+}
 .upload-box {
-  border: 1px solid #ccc;
+	width: 448px;
+	height: 200px;
+  border: 2px solid #000000;
   padding: 10px;
   margin-bottom: 10px;
 }
 
 .upload-btn {
   display: block;
-  width: 100px;
-  height: 100px;
+  width: 100px; /* Increase button width */
+  height: 58px; /* Increase button height */
   font-size: 16px;
   padding: 10px;
-  background-color: #4CAF50;
-  color: #fff;
+  background-color: transparent;
+  color: transparent;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   margin: auto;
+  display: flex; /* Add display:flex for center aligning */
+  justify-content: center; /* Center horizontally */
+  align-items: justify; /* Center vertically */
 }
+.upload-btn1 {
+  display: block;
+  width: 150px; /* Increase button width */
+  height: 50px; /* Increase button height */
+  font-size: 16px;
+  padding: 10px;
+  background-color: transparent;
+  color: #9bde9d;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: auto;
+  display: flex; /* Add display:flex for center aligning */
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+}
+
     </style>
         </head>
         <body>
              <div class="center-box">
         <form action="/predict_tomato" method="POST" enctype="multipart/form-data">
           <div class="upload-box">
-            <label for="image-upload">Upload an image:</label>
-            <input type="file" id="image-upload" name="image">
+            <label for="image-upload"><h2>Upload an image:</h2><br></label>
+            <input class=upload-btn type="file" id="image-upload" name="image">
           </div>
-          <button type="submit"> upload image</button>
+          <div class=upload-btn1>
+          <button type="submit"> <h3>upload image</h3></button>
+          </div>
         </form>
       </div>
         </body>
-        </html>"""
+        </html>'''
     return HTMLResponse(content=content)
 
 @app.post("/predict_tomato")
-async def predict(image: UploadFile = File(...)):
+async def predict(request: Request, image: UploadFile = File(...)):
         array = ["Bacterial Spot",
         "Early_Blight",
         "Late_Blight",
@@ -334,212 +474,361 @@ async def predict(image: UploadFile = File(...)):
         "Tomato yellow leaf curl virus",
         "Tomato Mosaic virus",
         "Tomato Healthy"]
-        img = read_img(await image.read())
-        img = img / 255
-        # print(img)
-        img = np.expand_dims(img, axis=0)
-        prediction = model3.predict(img)
-        return {
-            "Prediction": array[np.argmax(prediction[0]).tolist()],
-            "Surity": str(np.max(prediction).tolist()*100) + " %"
-        }
+        try:
+            img = read_img(await image.read())
+            img = img / 255
+            # print(img)
+            img = np.expand_dims(img, axis=0)
+            prediction = model3.predict(img)
+            d = array[np.argmax(prediction[0]).tolist()]
+            conf = str(round(np.max(prediction).tolist() * 100, 2)) + " %"
+            return templates.TemplateResponse("prediction.html",
+                                              {'request': request, 'cropname': "Tomato", "disease": d,
+                                               "confidence": conf})
+        except:
+            return templates.TemplateResponse("prediction.html",
+                                              {'request': request, 'cropname': "Tomato", "disease": "Image not supported. Retry with JPG images!",
+                                               "confidence": "Image not supported. Retry with JPG images!"})
 
 
 @app.get("/upload_cauliflower")
 async def upload_page():
-    content="""<!DOCTYPE html>
+    content='''<!DOCTYPE html>
         <html>
         <head>
             <title>Image Upload Page</title>
             <style>
+              body {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			height: 100vh;
+			margin: 0;
+			padding: 0;
+			background: url(https://w0.peakpx.com/wallpaper/837/398/HD-wallpaper-yellow-green-field-during-sunset-field-sunset-grass-nature-graphy.jpg) no-repeat;
+      background-position: center;
+      background-size: cover;
+      min-height: 100vh;
+      width: 100%;
+		}
     .center-box {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
 }
-
+h2{
+	text-align: center;
+  font-style: oblique;
+}
 .upload-box {
-  border: 1px solid #ccc;
+	width: 448px;
+	height: 200px;
+  border: 2px solid #000000;
   padding: 10px;
   margin-bottom: 10px;
 }
 
 .upload-btn {
   display: block;
-  width: 100px;
-  height: 100px;
+  width: 100px; /* Increase button width */
+  height: 58px; /* Increase button height */
   font-size: 16px;
   padding: 10px;
-  background-color: #4CAF50;
-  color: #fff;
+  background-color: transparent;
+  color: transparent;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   margin: auto;
+  display: flex; /* Add display:flex for center aligning */
+  justify-content: center; /* Center horizontally */
+  align-items: justify; /* Center vertically */
 }
+.upload-btn1 {
+  display: block;
+  width: 150px; /* Increase button width */
+  height: 50px; /* Increase button height */
+  font-size: 16px;
+  padding: 10px;
+  background-color: transparent;
+  color: #9bde9d;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: auto;
+  display: flex; /* Add display:flex for center aligning */
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+}
+
     </style>
         </head>
         <body>
              <div class="center-box">
         <form action="/predict_cauliflower" method="POST" enctype="multipart/form-data">
           <div class="upload-box">
-            <label for="image-upload">Upload an image:</label>
-            <input type="file" id="image-upload" name="image">
+            <label for="image-upload"><h2>Upload an image:</h2><br></label>
+            <input class=upload-btn type="file" id="image-upload" name="image">
           </div>
-          <button type="submit"> upload image</button>
+          <div class=upload-btn1>
+          <button type="submit"> <h3>upload image</h3></button>
+          </div>
         </form>
       </div>
         </body>
-        </html>"""
+        </html>'''
     return HTMLResponse(content=content)
 
 @app.post("/predict_cauliflower")
-async def predict(image: UploadFile = File(...)):
+async def predict(request: Request, image: UploadFile = File(...)):
         array = ['Bacterial spot rot' ,"Black Rot" ,"Downy Mildew" ,
                        "Healthy"]
-        img = read_img(await image.read())
-        img = img / 255
-        # print(img)
-        img = np.expand_dims(img, axis=0)
-        prediction = model4.predict(img)
-        return {
-            "Prediction": array[np.argmax(prediction[0]).tolist()],
-            "Surity": str(np.max(prediction).tolist()*100) + " %"
-        }
+        try:
+            img = read_img(await image.read())
+            img = img / 255
+            # print(img)
+            img = np.expand_dims(img, axis=0)
+            prediction = model4.predict(img)
+            d = array[np.argmax(prediction[0]).tolist()]
+            conf = str(round(np.max(prediction).tolist()*100, 2)) + " %"
+            return templates.TemplateResponse("prediction.html", {'request': request, 'cropname': "Cauliflower", "disease": d,
+                                                                  "confidence": conf})
+        except:
+            return templates.TemplateResponse("prediction.html",
+                                                  {'request': request, 'cropname': "Cauliflower",
+                                                   "disease": "Image not supported. Retry with JPG images!",
+                                                   "confidence": "Image not supported. Retry with JPG images!"})
 
 
 @app.get("/upload_okra")
 async def upload_page():
-    content="""<!DOCTYPE html>
+    content='''<!DOCTYPE html>
         <html>
         <head>
             <title>Image Upload Page</title>
             <style>
+              body {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			height: 100vh;
+			margin: 0;
+			padding: 0;
+			background: url(https://w0.peakpx.com/wallpaper/837/398/HD-wallpaper-yellow-green-field-during-sunset-field-sunset-grass-nature-graphy.jpg) no-repeat;
+      background-position: center;
+      background-size: cover;
+      min-height: 100vh;
+      width: 100%;
+		}
     .center-box {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
 }
-
+h2{
+	text-align: center;
+  font-style: oblique;
+}
 .upload-box {
-  border: 1px solid #ccc;
+	width: 448px;
+	height: 200px;
+  border: 2px solid #000000;
   padding: 10px;
   margin-bottom: 10px;
 }
 
 .upload-btn {
   display: block;
-  width: 100px;
-  height: 100px;
+  width: 100px; /* Increase button width */
+  height: 58px; /* Increase button height */
   font-size: 16px;
   padding: 10px;
-  background-color: #4CAF50;
-  color: #fff;
+  background-color: transparent;
+  color: transparent;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   margin: auto;
+  display: flex; /* Add display:flex for center aligning */
+  justify-content: center; /* Center horizontally */
+  align-items: justify; /* Center vertically */
 }
+.upload-btn1 {
+  display: block;
+  width: 150px; /* Increase button width */
+  height: 50px; /* Increase button height */
+  font-size: 16px;
+  padding: 10px;
+  background-color: transparent;
+  color: #9bde9d;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: auto;
+  display: flex; /* Add display:flex for center aligning */
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+}
+
     </style>
         </head>
         <body>
              <div class="center-box">
         <form action="/predict_okra" method="POST" enctype="multipart/form-data">
           <div class="upload-box">
-            <label for="image-upload">Upload an image:</label>
-            <input type="file" id="image-upload" name="image">
+            <label for="image-upload"><h2>Upload an image:</h2><br></label>
+            <input class=upload-btn type="file" id="image-upload" name="image">
           </div>
-          <button type="submit"> upload image</button>
+          <div class=upload-btn1>
+          <button type="submit"> <h3>upload image</h3></button>
+          </div>
         </form>
       </div>
         </body>
-        </html>"""
+        </html>'''
     return HTMLResponse(content=content)
 
 @app.post("/predict_okra")
-async def predict(image: UploadFile = File(...)):
+async def predict(request: Request, image: UploadFile = File(...)):
         array = ["Disesased okra leaf", "Healthy"]
-        img = read_img(await image.read())
-        img = img / 255
-        # print(img)
-        img = np.expand_dims(img, axis=0)
-        prediction = model5.predict(img)
-        if prediction[0] > 0.5:
-            return {
-                "Prediction": array[np.argmax(prediction[0]).tolist()],
-                "Surity": str(np.max(prediction).tolist()*100) + " %"
-            }
-        else:
-            return {
-                "Prediction": "Healthy",
-                "Surity": str(100 - np.max(prediction).tolist() * 100) + " %"
-            }
+        try:
+            img = read_img(await image.read())
+            img = img / 255
+            # print(img)
+            img = np.expand_dims(img, axis=0)
+            prediction = model5.predict(img)
+            if prediction[0] > 0.5:
+                d = array[np.argmax(prediction[0]).tolist()]
+                conf = str(round(np.max(prediction).tolist() * 100, 2)) + " %"
+                return templates.TemplateResponse("prediction.html",
+                                                  {'request': request, 'cropname': "Okra", "disease": d,
+                                                   "confidence": conf})
+            else:
+                d = array[np.argmax(prediction[0]).tolist()]
+                conf = str(round(np.max(prediction).tolist() * 100, 2)) + " %"
+                return templates.TemplateResponse("prediction.html",
+                                                  {'request': request, 'cropname': "Okra", "disease": d,
+                                                   "confidence": conf})
+        except:
+            return templates.TemplateResponse("prediction.html",
+                                                  {'request': request, 'cropname': "Okra",
+                                                   "disease": "Image not supported. Retry with JPG images!",
+                                                   "confidence": "Image not supported. Retry with JPG images!"})
 
 
 @app.get("/upload_cabbage")
 async def upload_page():
-    content="""<!DOCTYPE html>
+    content='''<!DOCTYPE html>
         <html>
         <head>
             <title>Image Upload Page</title>
             <style>
+              body {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			height: 100vh;
+			margin: 0;
+			padding: 0;
+			background: url(https://w0.peakpx.com/wallpaper/837/398/HD-wallpaper-yellow-green-field-during-sunset-field-sunset-grass-nature-graphy.jpg) no-repeat;
+      background-position: center;
+      background-size: cover;
+      min-height: 100vh;
+      width: 100%;
+		}
     .center-box {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
 }
-
+h2{
+	text-align: center;
+  font-style: oblique;
+}
 .upload-box {
-  border: 1px solid #ccc;
+	width: 448px;
+	height: 200px;
+  border: 2px solid #000000;
   padding: 10px;
   margin-bottom: 10px;
 }
 
 .upload-btn {
   display: block;
-  width: 100px;
-  height: 100px;
+  width: 100px; /* Increase button width */
+  height: 58px; /* Increase button height */
   font-size: 16px;
   padding: 10px;
-  background-color: #4CAF50;
-  color: #fff;
+  background-color: transparent;
+  color: transparent;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   margin: auto;
+  display: flex; /* Add display:flex for center aligning */
+  justify-content: center; /* Center horizontally */
+  align-items: justify; /* Center vertically */
 }
+.upload-btn1 {
+  display: block;
+  width: 150px; /* Increase button width */
+  height: 50px; /* Increase button height */
+  font-size: 16px;
+  padding: 10px;
+  background-color: transparent;
+  color: #9bde9d;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: auto;
+  display: flex; /* Add display:flex for center aligning */
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+}
+
     </style>
         </head>
         <body>
              <div class="center-box">
         <form action="/predict_cabbage" method="POST" enctype="multipart/form-data">
           <div class="upload-box">
-            <label for="image-upload">Upload an image:</label>
-            <input type="file" id="image-upload" name="image">
+            <label for="image-upload"><h2>Upload an image:</h2><br></label>
+            <input class=upload-btn type="file" id="image-upload" name="image">
           </div>
-          <button type="submit"> upload image</button>
+          <div class=upload-btn1>
+          <button type="submit"> <h3>upload image</h3></button>
+          </div>
         </form>
       </div>
         </body>
-        </html>"""
+        </html>'''
     return HTMLResponse(content=content)
 
 @app.post("/predict_cabbage")
-async def predict(image: UploadFile = File(...)):
+async def predict(request: Request, image: UploadFile = File(...)):
         array = ["Backmoth", "Leafminer", "Mildew"]
-        img = read_img(await image.read())
-        img = img / 255
-        # print(img)
-        img = np.expand_dims(img, axis=0)
-        prediction = model6.predict(img)
-        return {
-            "Disease": array[np.argmax(prediction[0]).tolist()],
-            "Confidence": str(np.max(prediction).tolist()*100) + " %"
-        }
-
+        try:
+            img = read_img(await image.read())
+            img = img / 255
+            # print(img)
+            img = np.expand_dims(img, axis=0)
+            prediction = model6.predict(img)
+            d = array[np.argmax(prediction[0]).tolist()]
+            conf = str(round(np.max(prediction).tolist() * 100, 2)) + " %"
+            return templates.TemplateResponse("prediction.html",
+                                              {'request': request, 'cropname': "Cabbage", "disease": d,
+                                               "confidence": conf})
+        except:
+            return templates.TemplateResponse("prediction.html",
+                                                  {'request': request, 'cropname': "Cabbage",
+                                                   "disease": "Image not supported. Retry with JPG images!",
+                                                   "confidence": "Image not supported. Retry with JPG images!"})
 
 '''if __name__ == "__main__":
     uvicorn.run(app, host='localhost', port=8000)'''

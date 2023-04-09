@@ -5,3 +5,4 @@ python-multipart
 pillow
 matplotlib
 numpy
+Jinja2==3.1.2
